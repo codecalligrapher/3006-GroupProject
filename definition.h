@@ -114,3 +114,11 @@
 #define     T1SYNC      T1CONbits   .NOT_T1SYNC
 #define     TMR1CS      T1CONbits   .TMR1CS
 #define     RD16        T1CONbits   .RD16
+
+//---------------------------------CCP/PWM------------------------------------//
+#define     DC1B1       CCP1CONbits .DC1B1       
+#define     DC1B0       CCP1CONbits .DC1B0
+#define     CCP1M3      CCP1CONbits .CCP1M3
+#define     CCP1M2      CCP1CONbits .CCP1M1
+#define     CCP1M1      CCP1CONbits .CCP1M1
+#define     CCP1M0      CCP1CONbits .CCP1M0
