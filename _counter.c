@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <xlcd.h>
 #include <portb.h>
+#include <timers.h>
 #include "_functions.h"
 #include "def_f842.h"
 
@@ -15,11 +16,11 @@
 
 #define _XTAL_FREQ   4000000
 
-#define     NDEBUG_ISR      1
+#define     NDEBUG_ISR      0
 #define     NDEBUG_LED      0
 #define     NDEBUG_KPAD     0
 #define     NDEBUG_TEMP     0
-#define     NDEBUG_COUNTER  1
+#define     NDEBUG_COUNTER  0
 #define     NDEBUG          1
 #define     TEMP            0
 #define     HRATE           1
@@ -27,7 +28,6 @@
 #define     CLEAR_LCD       WriteCmdXLCD(0x01)
 
 static int  beat_count, i, pNN50_cnt, dbg;
-static volatile unsigned char counter_beats;
 static int isr_count;
 unsigned int beats_time[60];
 extern short unsigned int kpad_data;
@@ -49,7 +49,6 @@ void temp_debug(void);
 void kpad_debug(void);
 
 
-
 #pragma code high_vector=0x08
 void high_vector(void)
 {
@@ -61,41 +60,23 @@ void high_vector(void)
 void h_isr(void)
 {
     GIE =   0;
-    
+#if NDEBUG
+    LED_TEST_THREE  =   1;
+#endif  
 #if NDEBUG_ISR
         isr_count++;
 #endif
-    
-    if (INTCONbits.INT0F)
-    {      
-        INTCONbits.INT0F = 0;
-#if NDEBUG
-        LED_TEST_THREE  =   ~(LED_TEST_THREE);
-        LED_TEST_ONE    =   0;
-#endif              
-        //counter_beats^= counter_beats;
-       
-        beats_time[counter_beats] = ReadTimer0();  
-        beats_time_LCD = ReadTimer0();
-#if NDEBUG_COUNTER
-        LCD_NOT_READY;
-        sprintf(LCD_test,"COUNT: %u", counter_beats);
-        CLEAR_LCD;
-        LCD_NOT_READY;
-        putsXLCD(LCD_test);
-#endif
-   }
-        
+      
     if(TMR0IF)
     {
 #if NDEBUG
         LED_TEST_ONE    =   1;
 #endif
         TMR0IF  =   0;
-        bpm =   1;//counter_bpm();
-        sprintf(LCD_bpm, "BPM: %d", bpm);
+        bpm =   ReadTimer1();
+        
+        sprintf(LCD_bpm, "BPM: %d", ReadTimer1());
         sprintf(LCD_var, "pNN50: %d", var);
-        counter_beats   =   0;
         LCD_NOT_READY;
         CLEAR_LCD;
         LCD_NOT_READY;
@@ -115,26 +96,39 @@ void h_isr(void)
         LCD_NOT_READY;
         putsXLCD(LCD_test);
 #endif
+        WriteTimer1(0);
         WriteTimer0(0);
     }
+#if NDEBUG
+    LED_TEST_THREE  =  0; 
+#endif
     GIE =   1;
 }
 
 void counter_measure_config(void)
 {
     bpm   = 0;
-    counter_beats = 0;
     TRISBbits.TRISB0    =   1;      //make input
     PORTBbits.INT0      =   1;
+    TRISCbits.TRISC0    =   1;
+    TRISCbits.RC0       =   1;
+    
+    
     T0CON   =   0x87;
     WriteTimer0(30380);
     TMR0IE  =   1;
     RBPU    =   0;      //individual PULLUPS enabled
     IPEN    =   1;      //enable priority
     INT0IF  =   0;      //clear flag    
-    OpenRB0INT(PORTB_CHANGE_INT_ON
-            &   RISING_EDGE_INT
-            &   PORTB_PULLUPS_OFF);
+    WriteTimer1(0);
+    OpenTimer1(TIMER_INT_OFF
+                & T1_8BIT_RW
+                & T1_SOURCE_EXT
+                & T1_PS_1_1
+                & T1_OSC1EN_OFF
+                & T1_SYNC_EXT_OFF
+                & T3_SOURCE_CCP
+            );
     //INTEDG0 =   1;      //select rising edge
     //INT0IE  =   1;      //enable external interrupt    
     GIE     =   1;      //enable HIGH interrupts
@@ -142,10 +136,13 @@ void counter_measure_config(void)
     return;
 }
 
+
+
+
 double counter_bpm(void)
 {   
-    int count_temp  =   counter_beats;
-    return (count_temp*4);
+    int count_temp  =   ReadTimer1();
+    return (count_temp*6);
 }
 
 
@@ -153,7 +150,6 @@ void main(void)
 {   
     int LCD_put     =   0;
     isr_count       =   1;    
-    counter_beats   =   2;
   
     
     //choose option for interval storage
@@ -176,7 +172,15 @@ void main(void)
         
 #if HRATE
         counter_measure_config();
-        while(1);
+        while(1){
+#if NDEBUG_COUNTER
+            sprintf(LCD_test,"TEST: %i",ReadTimer1());
+            CLEAR_LCD;
+            LCD_NOT_READY;
+            putsXLCD(LCD_test);
+#endif
+            
+        };
 #endif
        
 #if NDEBUG
