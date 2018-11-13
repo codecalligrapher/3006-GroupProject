@@ -4,35 +4,31 @@
 #include "_functions.h"
 #include "def_f842.h"
 
-extern unsigned int beats_time[60];
-extern int beats;
-short unsigned int RR_dif;
-unsigned int beats_difference[60];
+static int pnn50_cnt    =   0;
+static float var = 0.0;
 
-double variability(short unsigned int period)
+void pnn50_reset(void)
 {
-    double RR_diff = 0.0;
-    int var_value = 0;
-    int u = 0;
-    RR_dif = 0;
-    
-    if (period == 5)
+    var =   0.0;
+    pnn50_cnt   =   0;
+}
+
+int pnn50_get(void)
+{
+    return pnn50_cnt;
+}
+
+void pnn50_calc(int time1, int time2)
+{
+    if((time1 - time2) > FIFTY_MSECOND_PS_1_256)
     {
-        var_value = 391;
+        pnn50_cnt++;
     }
-    else
-    {
-        var_value = 195;
-    }
-    
-    for(u = 0; u < beats - 1; u++)
-    {
-        beats_difference[u] = beats_time[u +1] - beats_time[u];
-        if (fabs(beats_difference[u]) > var_value)
-        {
-            RR_dif++;
-        }
-    }
-    return (RR_diff/beats);
-                
+    return;
+}
+
+float pnn50_var(void)
+{
+    var = (pnn50_cnt/countv_get());
+    return var;                
 }
