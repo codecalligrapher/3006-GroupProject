@@ -25,6 +25,10 @@ static char LCD_bpm[32];
 static char LCD_rate[32];
 static char LCD_var[32];
 static char LCD_test[32];
+static char LCD_gluc[32];
+static unsigned char interval_valid =   0;
+static unsigned char action_valid    =   0;
+static unsigned char action;
 
 #pragma code high_vector=0x08
 void high_vector(void)
@@ -75,31 +79,6 @@ void h_isr(void)
         putsXLCD(LCD_test);
 #endif
     }
-
-    if(TMR0IF)
-    {
-#if NDEBUG
-        LED_TEST_ONE    =   1;
-#endif
-        TMR0IF  =   0;
-        
-        sprintf(LCD_rate, "BPM: %u", countv_get_rate());
-        sprintf(LCD_var, "pNN50: %2.2f",3.142);// pnn50_var());
-        LCD_NOT_READY;
-        CLEAR_LCD;
-        LCD_NOT_READY;
-        SetDDRamAddr(LINE_ONE);
-        LCD_NOT_READY;
-        putsXLCD(LCD_rate);
-        LCD_NOT_READY;
-        SetDDRamAddr(LINE_TWO);
-        LCD_NOT_READY;
-        putsXLCD(LCD_var);
-        countv_reset();
-        time_reset();
-        time2_reset();
-        WriteTimer0(0);
-    }
 #if 0
     LED_TEST_THREE  =  0;
 #endif
@@ -118,7 +97,7 @@ void counter_measure_config(void)
     
     T0CON   =   0x87;
     WriteTimer0(6942);
-    TMR0IE  =   1;
+    TMR0IE  =   0;
     RBPU    =   0;      //individual PULLUPS enabled
     IPEN    =   1;      //enable priority
     INT2IF  =   0;      //clear flag
@@ -139,46 +118,230 @@ double counter_bpm(void)
 
 void main(void)
 {
-    int LCD_put     =   0;
-
-    //choose option for interval storage
+    set_invalid_int();
 #if NDEBUG
     LED_debug();
     temp_debug();
     kpad_debug();
     glucose_debug();
+    nuke_debug();
+#endif    
+#if NDEBUG
+    LED_TEST_ONE    =   1;
 #endif
-
+    while(!interval_valid)
+    {
+#if NDEBUG
+    LED_TEST_TWO    =   1;
+#endif
+        interface_interval();
+        kpad_config();
+        while(!PORTBbits.INT1);
+        eeprom_store_interval(kpad_rslv());
+#if NDEBUG
+    LED_TEST_TWO    =   0;
+#endif
+        CLEAR_LCD;
+    }
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+#if NDEBUG
+    LED_TEST_ONE    =   0;
+#endif
+    
     TRISBbits.TRISB0 = 1;
 
-#if !NDEBUG
+
     while(1)
     {
-#endif
+        set_invalid_action();
+
 #if NDEBUG
         LED_TEST_TWO    =   1;
-#endif
-
-#if HRATE
-        putrsXLCD("MEASURING");
-        counter_measure_config();
-        while(1);
-#endif
-
+#endif        
+        while(!get_action_valid())
+        {
+            interface_action();
+            kpad_config();
+            while(!PORTBbits.INT1);
+            action = kpad_rslv();
+            CLEAR_LCD;
 #if NDEBUG
-        LED_TEST_TWO    =   0;
+          LED_TEST_TWO    =   0;
 #endif
-
-
+            switch(action)
+            {
+                case 'A':
+                    set_valid_action();
 #if TEMP
-                temp();
-                LCD_NOT_READY;
-                putsXLCD(Temperature);
+                    temp();                  
+#endif       
+                    putrsXLCD("MEASURING");
+#if HRATE
+                    
+                    counter_measure_config();
+#if NDEBUG
+          LED_TEST_TWO    =   1;
 #endif
-                //CLEAR_LCD;
-                LCD_put = 0;
-#if !NDEBUG
+                    while(!TMR0IF);
+#if NDEBUG
+          LED_TEST_TWO    =   0;
+#endif
+#endif
+#if GLUC
+                    
+#endif
+#if NDEBUG
+           LED_TEST_ONE    =   1;
+#endif
+                    GIE  =   0;
+                    TMR0IF  =   0;        
+                    sprintf(LCD_rate, "BPM: %u", countv_get_rate());
+                    sprintf(LCD_var, "pNN50: %2.2f",pnn50_var());
+                    sprintf(LCD_temp, "TEMP: %i.%i", get_temp_int(),get_temp_fraction());
+                    sprintf(LCD_gluc, "GLUCOSE: %i", adc_glucose_get());
+                    LCD_NOT_READY;
+                    CLEAR_LCD;
+                    LCD_NOT_READY;
+                    SetDDRamAddr(LINE_ONE);
+                    LCD_NOT_READY;
+                    putsXLCD(LCD_rate);
+                    LCD_NOT_READY;
+                    SetDDRamAddr(LINE_TWO);
+                    LCD_NOT_READY;
+                    putsXLCD(LCD_var);
+                    LCD_NOT_READY;
+                    SetDDRamAddr(LINE_THREE);
+                    LCD_NOT_READY;
+                    putsXLCD(LCD_temp);
+                    LCD_NOT_READY;
+                    SetDDRamAddr(LINE_FOUR);
+                    LCD_NOT_READY;
+                    putsXLCD(LCD_gluc);
+                    dly_8s();
+                    CLEAR_LCD;
+                    countv_reset();
+                    time_reset();
+                    time2_reset();
+                    WriteTimer0(0);     
+            
+#if NDEBUG
+    LED_TEST_ONE  =  0;
+#endif             
+                    break;
+                case 'B':
+                    set_valid_action();
+                    break;
+                default:                    
+                    set_invalid_action();
+                    LCD_NOT_READY;
+                    CLEAR_LCD;
+                    LCD_NOT_READY;
+                    SetDDRamAddr(LINE_ONE);
+                    LCD_NOT_READY;
+                    putrsXLCD("INVALID");
+                    SetDDRamAddr(LINE_TWO);
+                    LCD_NOT_READY;
+                    putrsXLCD("TRY AGAIN");
+                    dly_2s();
+                    break;
+                   
+            }
+        }        
     }
-#endif
+
+    return;
+}
+
+void set_valid_int(void)
+{
+    interval_valid  =   1;
+    return;
+}
+
+void set_invalid_int(void)
+{
+    interval_valid  =   0;
+    return;
+}
+
+short unsigned int get_valid_int(void)
+{
+    return interval_valid;
+}
+
+void set_valid_action(void)
+{
+    action_valid    =   1;
+    return;
+}
+
+void set_invalid_action(void)
+{
+    action_valid    =   0;
+    return;
+}
+
+unsigned char get_action_valid(void)
+{
+    return action_valid;
+}
+
+static void dly_8s(void)
+{
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    return;
+}
+
+static void dly_2s(void)
+{
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    return;
+}
+
+static void dly_1s(void)
+{
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
+    Delay1KTCYx(256);
     return;
 }
