@@ -30,6 +30,7 @@ static unsigned char interval_valid =   0;
 static unsigned char action_valid    =   0;
 static unsigned char action;
 
+
 #pragma code high_vector=0x08
 void high_vector(void)
 {
@@ -66,7 +67,7 @@ void h_isr(void)
         putsXLCD(LCD_test);
         LCD_NOT_READY;
         SetDDRamAddr(LINE_THREE);
-        sprintf(LCD_test, "VAR CNT: %i", pnn50_get());
+        sprintf(LCD_test, "VAR CNT: %i", pnn50_get_cnt());
         LCD_NOT_READY;
         putsXLCD(LCD_test);     
         
@@ -118,9 +119,12 @@ double counter_bpm(void)
 
 void main(void)
 {
+    static unsigned int interval_store_cnt  =   0;
+    static unsigned int eeprom_loc_temp     =   0x0;
     set_invalid_int();
 #if NDEBUG
     LED_debug();
+    eeprom_debug();
     temp_debug();
     kpad_debug();
     glucose_debug();
@@ -138,6 +142,7 @@ void main(void)
         kpad_config();
         while(!PORTBbits.INT1);
         eeprom_store_interval(kpad_rslv());
+        eeprom_set_next(0x00);
 #if NDEBUG
     LED_TEST_TWO    =   0;
 #endif
@@ -173,6 +178,7 @@ void main(void)
             {
                 case 'A':
                     set_valid_action();
+                    interval_store_cnt = interval_store_cnt + 1;
 #if TEMP
                     temp();                  
 #endif       
@@ -197,8 +203,8 @@ void main(void)
                     GIE  =   0;
                     TMR0IF  =   0;        
                     sprintf(LCD_rate, "BPM: %u", countv_get_rate());
-                    sprintf(LCD_var, "pNN50: %2.2f",pnn50_var());
-                    sprintf(LCD_temp, "TEMP: %i.%i", get_temp_int(),get_temp_fraction());
+                    sprintf(LCD_var, "pNN50: %i%%",pnn50_get());
+                    sprintf(LCD_temp, "TEMP: %i.%i", temp_get_int(),temp_get_fraction());
                     sprintf(LCD_gluc, "GLUCOSE: %i", adc_glucose_get());
                     LCD_NOT_READY;
                     CLEAR_LCD;
@@ -218,6 +224,15 @@ void main(void)
                     SetDDRamAddr(LINE_FOUR);
                     LCD_NOT_READY;
                     putsXLCD(LCD_gluc);
+#if ROM
+                    if (eeprom_get_interval() == interval_store_cnt)
+                    {
+                        interval_store_cnt  =   0;
+                        eeprom_write_data(eeprom_get_next());
+                        eeprom_set_next(eeprom_loc_temp);
+                        eeprom_loc_temp =   eeprom_loc_temp + 6;                        
+                    }
+#endif
                     dly_8s();
                     CLEAR_LCD;
                     countv_reset();
@@ -231,6 +246,8 @@ void main(void)
                     break;
                 case 'B':
                     set_valid_action();
+                    
+                    
                     break;
                 default:                    
                     set_invalid_action();
@@ -287,7 +304,7 @@ unsigned char get_action_valid(void)
     return action_valid;
 }
 
-static void dly_8s(void)
+void dly_8s(void)
 {
     Delay1KTCYx(256);
     Delay1KTCYx(256);
@@ -324,7 +341,7 @@ static void dly_8s(void)
     return;
 }
 
-static void dly_2s(void)
+void dly_2s(void)
 {
     Delay1KTCYx(256);
     Delay1KTCYx(256);
@@ -337,7 +354,7 @@ static void dly_2s(void)
     return;
 }
 
-static void dly_1s(void)
+void dly_1s(void)
 {
     Delay1KTCYx(256);
     Delay1KTCYx(256);
