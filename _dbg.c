@@ -6,6 +6,7 @@
 #include <portb.h>
 #include <timers.h>
 #include <spi.h>
+#include <pwm.h>
 #include "_functions.h"
 #include "def_f842.h"
 
@@ -61,8 +62,8 @@ void temp_debug(void)
     LCD_NOT_READY;
     CLEAR_LCD;
     LCD_NOT_READY;
-    SetDDRamAddr(0x40);
-    sprintf(LCD_test, "Temperature: %f", finaltemp);
+    SetDDRamAddr(LINE_TWO);
+    sprintf(LCD_test, "TEMP: %i.%i", get_temp_int(),get_temp_fraction());
     LCD_NOT_READY;
     putsXLCD(LCD_test);
     LED_TEST_ONE    =   1;
@@ -117,4 +118,102 @@ void glucose_debug(void)
     }
 
 #endif
+}
+
+void nuke_debug(void)
+{
+#if NDEBUG_NUKE  
+        TRISD   =   0b00000000;
+        OpenXLCD(FOUR_BIT & LINES_5X7);
+        LCD_NOT_READY;
+        CLEAR_LCD;
+        LCD_NOT_READY;
+        WriteCmdXLCD(DON & BLINK_OFF);
+        LCD_NOT_READY;;
+        CLEAR_LCD;
+        SetDDRamAddr(LINE_TWO);
+        putrsXLCD("GLORY TO THE FUHRER");
+        TRISCbits.TRISC2    =   0;
+        OpenTimer2(TIMER_INT_OFF & T2_PS_1_16 & T2_POST_1_1); 
+        SetDCPWM1(DUTY_CYCLE); 
+        LED_TEST_ONE = 1;
+        while(1){
+            
+            OpenPWM1(PWM_PERIOD);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            ClosePWM1();
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+        }
+        
+        while(1);
+#endif
+    return;
+}
+
+void eeprom_debug(void)
+{
+#if NDEBUG_MEM
+    unsigned int ROM_test;
+    unsigned char ROM_lcd[32];
+    unsigned char kpad_data;
+    unsigned int eeprom_dat[5] = {0,1,2,3,4};
+    int i = 0;
+    eeprom_write(eeprom_dat[0],eeprom_dat[0]);
+    eeprom_write(eeprom_dat[1],eeprom_dat[1]);
+    eeprom_write(eeprom_dat[2],eeprom_dat[2]);
+    eeprom_write(eeprom_dat[3],eeprom_dat[3]);
+    eeprom_write(eeprom_dat[4],eeprom_dat[4]);
+    LED_TEST_ONE    =   1;
+    i = 0;
+    while(1)
+    {
+        LED_TEST_TWO    =   1;
+        kpad_config();
+        while(!PORTBbits.INT1);
+        kpad_data = kpad_rslv();
+        if (kpad_data == 'A')
+        {
+            i = i + 0x01; 
+            if (i > 0x05)
+            {
+                i = 0x05;
+            }
+            ROM_test = eeprom_read(i);
+            LED_TEST_TWO    =   0;
+        }
+        if (kpad_data == 'B')
+        {
+            i = i - 0x01;
+            if (i < 0x00)
+            {
+                i = 0x00;
+            }
+            ROM_test = eeprom_read(i);
+            LED_TEST_TWO    =   0;
+        }
+        TRISD   =   0b00000000;
+        OpenXLCD(FOUR_BIT & LINES_5X7);
+        LCD_NOT_READY;
+        CLEAR_LCD;
+        LCD_NOT_READY;
+        WriteCmdXLCD(DON & BLINK_OFF);
+        LCD_NOT_READY;;
+        CLEAR_LCD;
+        SetDDRamAddr(LINE_TWO);
+        LCD_NOT_READY;
+        sprintf(ROM_lcd, "ROM: %i", ROM_test);
+        putsXLCD(ROM_lcd);
+        LED_TEST_TWO    =   1;
+        Delay1KTCYx(256);
+        Delay1KTCYx(256);
+    }
+    
+    
+    while(1);
+#endif
+    return;
 }
