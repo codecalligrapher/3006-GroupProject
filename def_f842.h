@@ -5,6 +5,7 @@
  * Created on October 29, 2018, 5:30 PM
  */
 #include <p18f452.h>
+#include "_functions.h"
 
 #define     NDEBUG_GLUCOSE  0
 #define     NDEBUG_ISR      0
@@ -12,10 +13,14 @@
 #define     NDEBUG_LED      0
 #define     NDEBUG_TEMP     0
 #define     NDEBUG_COUNTER  0
-#define     NDEBUG_PNN50    1
+#define     NDEBUG_PNN50    0
+#define     NDEBUG_NUKE     0
+#define     NDEBUG_MEM      0
 #define     NDEBUG          1
-#define     TEMP            0
+#define     TEMP            1
 #define     HRATE           1
+#define     GLUC            0
+#define     ROM             1
 
 #define     GIE         INTCONbits.GIE
 #define     GIEH        INTCONbits.GIEH
@@ -57,20 +62,20 @@
 #define     CCP2IF      PIR2bits.CCP2IF
 
 
-#define     PSPIE       PIR1bits.PSPIE
-#define     ADIE        PIR1bits.ADIE
-#define     RCIE        PIR1bits.RCIE
-#define     TXIE        PIR1bits.TXIE
-#define     SSPIE       PIR1bits.SSPIE
-#define     CCP1IE      PIR1bits.CCP1IE
-#define     TMR2IE      PIR1bits.TMR2IE
-#define     TMR1IE      PIR1bits.TMR1IE
+#define     PSPIE       PIE1bits.PSPIE
+#define     ADIE        PIE1bits.ADIE
+#define     RCIE        PIE1bits.RCIE
+#define     TXIE        PIE1bits.TXIE
+#define     SSPIE       PIE1bits.SSPIE
+#define     CCP1IE      PIE1bits.CCP1IE
+#define     TMR2IE      PIE1bits.TMR2IE
+#define     TMR1IE      PIE1bits.TMR1IE
 
-#define     EEIE        PIR2bits.EEIE
-#define     BCLIE       PIR2bits.BCLIE
-#define     LVDIE       PIR2bits.LVDIE
-#define     TMR3IE      PIR2bits.TMR3IE
-#define     CCP2IE      PIR2bits.CCP2IE
+#define     EEIE        PIE2bits.EEIE
+#define     BCLIE       PIE2bits.BCLIE
+#define     LVDIE       PIE2bits.LVDIE
+#define     TMR3IE      PIE2bits.TMR3IE
+#define     CCP2IE      PIE2bits.CCP2IE
 
 #define     PSPIP       IPR1bits.PSPIP
 #define     ADIP        IPR1bits.ADIP
@@ -126,7 +131,7 @@
 
 #define ONE_SECOND_PS_1_256 3906.25 
 #define TWO_SECOND_PS_1_256 7813 
-#define FIFTY_MSECOND_PS_1_256 195
+#define FIFTY_MSECOND_PS_1_256 400
 
 #define     LED_TEST_ONE    LATEbits.LATE0
 #define     LED_TEST_TWO    LATEbits.LATE1
