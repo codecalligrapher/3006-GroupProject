@@ -1,57 +1,143 @@
 #include <p18f452.h>
-#include <xlcd.h>
+#include <delays.h>
+#include "_functions.h"
+#include "def_f842.h"
 
+static int addr_1;
+static int addr_2;
+static int addr_3;
+static int addr_4;
+static int addr_5;
+static unsigned int interval_store   =   0;
 
-#pragma config  OSC     =   HS
-#pragma config  WDT     =   OFF
-#pragma config  BOR     =   OFF
-#pragma config  PWRT    =   OFF
-#pragma config  CCP2MUX =   ON
-#pragma config  STVR    =   OFF
-#pragma config  LVP     =   OFF
-#pragma config  DEBUG   =   OFF
-
-unsigned char read_EEPROM(unsigned char);
-void write_EEPROM(unsigned char, unsigned char);
-
-unsigned char read_EEPROM(unsigned char rom_address)
+void eeprom_write_data(unsigned int addr)
 {
-    while(EECON1bits.WR || EECON1bits.RD);
-    EEADR               =   rom_address;
-    EECON1bits.EEPGD    =   0;                  //point to DATA memory
-    EECON1bits.CFGS     =   0;                  //access DATA memory
-    EECON1bits.RD       =   1;                  //initiate read
-    while(EECON1bits.RD);                       //wait for read to finish
+    addr_1  =   addr;
+    addr_2  =   addr + 1;
+    addr_3  =   addr + 2;
+    addr_4  =   addr + 3;
+    addr_5  =   addr + 4;
+    eeprom_write(countv_get_rate(),addr_1);
+    eeprom_write(pnn50_get,addr_2);
+    eeprom_write(temp_get_int(), addr_3);
+    eeprom_write(temp_get_fraction(),addr_4);    
+    //eeprom_write(gluc_get(),addr_5);
+    return;
+}
+
+void eeprom_store_interval(char interval_option)
+{
+    
+    switch(interval_option)
+    {
+        case 'A':
+            interval_store =   1;
+            set_valid_int();
+            break;
+        case 'B':
+            interval_store  =   2;
+            set_valid_int();
+            break;
+        case 'C':
+            interval_store  =   5;
+            set_valid_int();
+            break;
+        case 'D':
+            interval_store  =   10;
+            set_valid_int();
+            break;
+        default:
+            
+            CLEAR_LCD;
+            set_invalid_int();
+            SetDDRamAddr(LINE_TWO);
+            putrsXLCD("INVALID OPTION");
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            CLEAR_LCD;
+            putrsXLCD("TRY AGAIN");
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            Delay1KTCYx(256);
+            CLEAR_LCD;            
+            break;
+    }
+    return;
+}
+
+void eeprom_display_data(int addr)
+{
+    addr_1  =   addr;
+    addr_2  =   addr + 1;
+    addr_3  =   addr + 2;
+    addr_4  =   addr + 3;
+    addr_5  =   addr + 4;
+    interface_set_rate(eeprom_read(addr_1));
+    interface_set_pnn50(eeprom_read(addr_2));
+    interface_set_temp_int(eeprom_read(addr_3));
+    interface_set_temp_fraction(eeprom_read(addr_4));
+    interface_set_gluc(eeprom_read(addr_5));
+    return;
+}
+
+void eeprom_write(unsigned int data, unsigned int addr)
+{
+    unsigned char GIE_temp  =   GIE;
+    EEPGD   =   0;
+    CFGS    =   0;
+    GIE     =   0;
+    while(WR);
+    EEADR   =   addr;
+    EEDATA  =   data;
+    WREN    =   1;  
+   
+    EECON2  =   0x55;
+    EECON2  =   0xAA;
+    WR      =   1;
+    while(WR);
+    WREN    =   0;
+    EEIF    =   0;
+    GIE =   GIE_temp;
+    EEPGD   =   1;
+    return;
+}
+
+unsigned char eeprom_read(unsigned int addr)
+{
+    
+    while(RD||WR);
+    EEADR   =   addr;
+    EEPGD   =   0;
+    CFGS    =   0;
+    RD      =   1;
+    while(RD);
+    EEPGD   =   1;
     return EEDATA;
 }
 
-void write_EEPROM(unsigned char rom_address,unsigned char rom_data)
+unsigned int eeprom_get_interval(void)
 {
-    char gie_stat;
-    while(EECON1bits.WR == 1);                  //ensure no writes are in progress
-    EEADR               =   rom_address;        //write sequence
-    EEDATA              =   rom_data;
-    EECON1bits.EEPGD    =   0;                  //points to DATA memory
-    EECON1bits.WREN     =   1;                  //enables write to EEPROM
-    gie_stat            =   INTCONbits.GIE;         //copies current GIE state
-    INTCONbits.GIE      =   0;                  //disables ALL interrupts
-    EECON2              =   0x55;
-    EECON2              =   0xAA;
-    EECON1bits.WR       =   1;
-    INTCONbits.GIE      =   gie_stat;           //restores GIE status
-    while(EECON1bits.WR == 1);                  //wait for write to finish
-    return;            
+    return interval_store;
 }
 
-struct data{
-    float   h_rate;
-    float   glucose;
-    float   variation;
-    float   temp_current;
-};
-
-void main(void)
+void eeprom_set_next(unsigned int next_loc)
 {
-    
+    eeprom_write(next_loc, 0xFF);
     return;
+}
+
+unsigned int eeprom_get_next(void)
+{
+    return eeprom_read(0xFF);
 }
