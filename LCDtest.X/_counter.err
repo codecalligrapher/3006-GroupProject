@@ -1,0 +1,13 @@
+Warning[2074] D:\ECNG 3006\LCDtest.X\_counter.c 46 : location PROD specified in the interrupt save list is redundant
+Warning[2058] D:\ECNG 3006\LCDtest.X\_counter.c 133 : call of function without prototype
+Warning[2058] D:\ECNG 3006\LCDtest.X\_counter.c 161 : call of function without prototype
+Warning[2066] D:\ECNG 3006\LCDtest.X\_counter.c 178 : type qualifier mismatch in assignment
+Warning[2066] D:\ECNG 3006\LCDtest.X\_counter.c 179 : type qualifier mismatch in assignment
+Warning[2066] D:\ECNG 3006\LCDtest.X\_counter.c 180 : type qualifier mismatch in assignment
+Warning[2066] D:\ECNG 3006\LCDtest.X\_counter.c 181 : type qualifier mismatch in assignment
+Warning[2066] D:\ECNG 3006\LCDtest.X\_counter.c 250 : type qualifier mismatch in assignment
+Warning[2066] D:\ECNG 3006\LCDtest.X\_counter.c 251 : type qualifier mismatch in assignment
+Warning[2066] D:\ECNG 3006\LCDtest.X\_counter.c 252 : type qualifier mismatch in assignment
+Warning[2066] D:\ECNG 3006\LCDtest.X\_counter.c 253 : type qualifier mismatch in assignment
+Warning[2058] D:\ECNG 3006\LCDtest.X\_counter.c 291 : call of function without prototype
+Warning[2058] D:\ECNG 3006\LCDtest.X\_counter.c 376 : call of function without prototype
