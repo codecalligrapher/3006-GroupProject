@@ -1,3 +1,28 @@
+/***************************************************************************
+   File Name:   _pwm.c
+   Author:      Brandon Jodha
+   
+   Function:
+        alarm_init
+            Input:      Note (char)
+            Output:     NONE
+            Process:    
+                        Configures Timer2 for PWM
+                        Opens PWM2 for Note
+                              
+        alarm_close
+            Input:      NONE
+            Output:     NONE
+            Process:    
+                        Closes PWM2
+
+        alarm           
+            Input:      NONE 
+            Output:     NONE 
+            Process:
+                        Configures CCP2 as output for PWM 
+                        Sets PWM Duty Cycle
+ ****************************************************************************/
 #include <p18f452.h>
 #include <delays.h>
 #include <pwm.h>

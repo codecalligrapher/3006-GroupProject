@@ -1,3 +1,27 @@
+/***************************************************************************
+   File Name:   _pNN50.c
+   Author:      Aadidev Sooknanan 
+   
+   Function:
+        pnn50_calc
+            Input:      Current Time(int), Previous Time (int)
+            Output:     NONE
+            Process:    
+                        Increments HRV counters if difference between times is
+                        greater than 195
+                              
+        pnn50_var
+            Input:      NONE
+            Output:     HRV (float)
+            Process:    
+                        Divides HRV counter by net number or heartbeats
+
+        Getters, setters and resetters for pnn50_cnt and HRV 
+        
+    Variable Listing:
+            pnn50_cnt  -  HRV Counter 
+            var        - HRV 
+ ****************************************************************************/
 #include <p18f452.h>
 #include <timers.h>
 #include <math.h>

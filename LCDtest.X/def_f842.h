@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   def_f842.h
  * Author: aaadi
  *
@@ -7,31 +7,41 @@
 #include <p18f452.h>
 #include "_functions.h"
 
+/*Used for Debugging Modules*/
 #define     NDEBUG_GLUCOSE      0
 #define     NDEBUG_ISR          0
 #define     NDEBUG_KPAD         0
 #define     NDEBUG_LED          0
 #define     NDEBUG_TEMP         0
 #define     NDEBUG_COUNTER      0
+#define     NDEBUG_HR           0
 #define     NDEBUG_PNN50        0
 #define     NDEBUG_NUKE         0
 #define     NDEBUG_UNSTABLE     0
 
+/*Used for Debugging Combinations of
+readings to trigger alarm sequence*/
 #define     NDEBUG_GLUC_UNSTABLE  0
 #define     NDEBUG_HR_UNSTABLE    0
 #define     NDEBUG_HRV_UNSTABLE   0
 
-#define     NDEBUG_GLUC_STABLE  1
-#define     NDEBUG_HR_STABLE    1
-#define     NDEBUG_HRV_STABLE   1
+#define     NDEBUG_GLUC_STABLE  0
+#define     NDEBUG_HR_STABLE    0
+#define     NDEBUG_HRV_STABLE   0
 
+/*Used to debug memory*/
 #define     NDEBUG_MEM          0
 #define     NDEBUG_MEM_STORE    0
-#define     TIMER_NOT_DEBUG     0
+
+/*Used to disable timer measurement period
+when pre-set values are driven from modules*/
+#define     TIMER_NOT_DEBUG     1
+
+/*MASTER Enable bits for Modules*/
 #define     NDEBUG              1
 #define     TEMP                1
 #define     HRATE               1
-#define     GLUC                0
+#define     GLUC                1
 #define     ROM                 1
 
 #define     GIE         INTCONbits.GIE
@@ -141,9 +151,9 @@
 #define LINE_THREE  0x10
 #define LINE_FOUR   0x50
 
-#define ONE_SECOND_PS_1_256 3906.25 
-#define TWO_SECOND_PS_1_256 7813 
-#define FIFTY_MSECOND_PS_1_256 400
+#define ONE_SECOND_PS_1_256 3906.25
+#define TWO_SECOND_PS_1_256 7813
+#define FIFTY_MSECOND_PS_1_256 195
 
 #define     LED_TEST_ONE    LATEbits.LATE0
 #define     LED_TEST_TWO    LATEbits.LATE1
@@ -152,11 +162,11 @@
 #define     LED_TEST_TWO_STAT   PORTEbits.RE1
 #define     LED_TEST_THREE_STAT PORTEbits.RE2
 
-#define     FRAM_SER            LATBbits.LATB7                     
-#define     FRAM_LAT            LATBbits.LATB6    
+#define     FRAM_SER            LATBbits.LATB7
+#define     FRAM_LAT            LATBbits.LATB6
 #define     FRAM_CLK            LATCbits.LATC5
 
-#define     FRAM_W_EN           LATCbits.LATC5    
+#define     FRAM_W_EN           LATCbits.LATC5
 #define     FRAM_CHIP_EN        LATCbits.LATC6
 #define     FRAM_OUT_EN         LATCbits.LATC7
 
@@ -179,6 +189,7 @@
 #define     FRAM_D7_IN          PORTBbits.RB4
 
 #define     EE_LOC_UPPER_LIMIT      0xF4
+#define     EE_LOC_INTERVAL_C       0xF7
 #define     EE_LOC_INTERVAL         0XF8
 #define     EE_LOC_STATUS           0XF9
 #define     EE_LOC_TEMP_RATE        0xFA

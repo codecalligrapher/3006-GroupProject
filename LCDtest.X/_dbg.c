@@ -1,3 +1,62 @@
+/***************************************************************************
+   File Name:  _dbg.c
+   Author:      Aadidev Sooknanan
+   
+   Function:
+        LED_debug
+            Input:      NONE
+            Output:     NONE
+            Process:    Configures PORTE as Output            
+                        Turns ON PORTE for fixed interval
+                        
+        temp_debug
+            Input:      NONE
+            Output:     NONE
+            Process:    Initialises Temperature sensor 
+                        Displays Temperature on LCD
+                        
+       kpad_debug
+            Input:      NONE 
+            Output:     NONE 
+            Process:
+                        Configures Keypad data bus as input 
+                        Configures Keypad data ready pin as input 
+                        Reads Data bus on a HIGH data ready 
+                        Displays Keypress on LCD 
+                        
+      glucose_debug
+            Input:      NONE 
+            Output:     NONE 
+            Process:    
+                        Initialises ADC module 
+                        Displays ADC result on LCD 
+
+      hr_debug          
+            Input:      NONE 
+            Output:     NONE 
+            Process:
+                        Resets pulse counter, timer0 and HRV 
+                        Configures INT2 external interrupt 
+
+     nuke_debug
+            Input:      NONE 
+            Output:     NONE 
+            Process:
+                        Configures CCP1 as output for PWM 
+                        Configures PWM Module   
+                        Opens PWM Module 
+                        Plays alarm sequence
+
+      eeprom_debug 
+              Input:    NONE 
+              Output:   NONE
+              Process:  
+                        Writes 0-4 to first 5 locations in EEPROM 
+                        Calls keypad configuration routine 
+                        Displays data from EEPROM on LCD 
+                        Allows for scrolling UP/DOWN through EEPROM
+ ****************************************************************************/
+
 #include <p18f452.h>
 #include <timers.h>
 #include <delays.h>
@@ -105,12 +164,18 @@ void glucose_debug(void)
     {
         LED_TEST_ONE    =   1;
         LED_TEST_TWO    =   ~LED_TEST_ONE;
-        sprintf(LCD_test, "ADC: %i", adc_measure());
+        adc_glucose_rslv();
+        sprintf(LCD_test, "GLUC: %img/dl", adc_glucose_get());
         LCD_NOT_READY;
         SetDDRamAddr(LINE_THREE);
         CLEAR_LCD;
         LCD_NOT_READY;
         putsXLCD(LCD_test);
+        LCD_NOT_READY;
+        SetDDRamAddr(LINE_TWO);
+        sprintf(LCD_test, "ADC: %i", adc_measure());
+        LCD_NOT_READY;
+        putsXLCD(LCD_test);;
         LCD_NOT_READY;
 
         LED_TEST_ONE    =   0;
@@ -122,6 +187,35 @@ void glucose_debug(void)
 #endif
 }
 
+
+void hr_debug(void)
+{
+#if NDEBUG_HR
+     TRISBbits.TRISB2    =   1;      //make input
+    TRISCbits.TRISC0    =   1;
+    TRISCbits.RC0       =   1;
+
+    countv_reset();
+    time_reset();
+    pnn50_reset();
+    
+    
+    TMR0IE  =   0;
+    RBPU    =   0;      //individual PULLUPS enabled
+    IPEN    =   1;      //enable priority
+    INT2IF  =   0;      //clear flag
+    INTEDG2 =   1;      //select rising edge
+    INT2IE  =   1;      //enable external interrupt
+    INT2IP  =   1;
+    GIE     =   1;      //enable HIGH interrupts
+    PEIE    =   1;      //enable LOW interrupts
+    while(1)
+    {
+        
+    }
+#endif
+    return;
+}
 void nuke_debug(void)
 {
 #if NDEBUG_NUKE  

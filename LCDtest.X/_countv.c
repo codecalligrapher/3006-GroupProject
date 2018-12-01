@@ -7,7 +7,20 @@
 static unsigned int countv_beats    = 0;
 static unsigned int countv_time     = 0;
 static unsigned int countv_time2    = 0;
-
+/***************************************************************************
+ * File Name: _counter.c
+ * Function:    Setters, Getters, Incrementers and reset functions for 
+ *              pulse counting 
+ * 
+ *              Setters, Getters, Incrementers and reset functions for 
+ *              pNN50 variables (time and time2 - current and previous
+ *              time respectively)
+ * 
+ * Variable listing:    
+ *              countv_beats    -   primary pulse counter
+ *              countv_time     -   stores value of Timer0 on current pulse
+ *              countv_time2    -   stores value of Timer0 on previous pulse 
+ * **************************************************************************/
 void countv_incr(void)
 {
     countv_beats++;
@@ -39,7 +52,8 @@ int countv_get_rate(void)
     return 25;
 #endif
     
-    return (4*countv_beats);
+    //return (4*countv_beats);
+    return (2*countv_beats);
 }
 
 void time_set(int timer_value)

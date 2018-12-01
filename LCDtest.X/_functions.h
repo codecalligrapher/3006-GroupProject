@@ -66,6 +66,7 @@ void temp_debug(void);
 void kpad_debug(void);
 void glucose_debug(void);
 void nuke_debug(void);
+void hr_debug(void);
 
 /*_temp.c*/
 void temp(void);

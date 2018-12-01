@@ -1,0 +1,4 @@
+Warning[2058] D:\ECNG 3006\LCDtest.X\_fram.c 90 : call of function without prototype
+Warning[2058] D:\ECNG 3006\LCDtest.X\_fram.c 91 : call of function without prototype
+Error[1109] D:\ECNG 3006\LCDtest.X\_fram.c 94 : type mismatch in redeclaration of 'fram_write'
+Error[1109] D:\ECNG 3006\LCDtest.X\_fram.c 108 : type mismatch in redeclaration of 'fram_delay'

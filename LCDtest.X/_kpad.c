@@ -1,8 +1,25 @@
-////////////////////////////////////////////////////////////////////////////////
-//Authour: Bradley Doodnath
-//KEYPAD CODE V2.0
-////////////////////////////////////////////////////////////////////////////////
+/***************************************************************************
+ * File Name:   _kpad.c
+ * Author:      Bradley Doodnath
+ * 
+ * Function:
+ *      kpad_rslv
+ *          Input:      NONE
+ *          Output:     Keypress (char)
+ *          Process:    
+                        LUT via if-else statements matching keypad data bus 
+                        to ASCII characters
+                              
+ *      kpad_config
+   *        Input:      NONE
+ *          Output:     NONE
+ *          Process:    
+                        Configures keypad data bus and data ready line as Input
+                        Clears input line interrupt (INT1)
 
+    Variable Listing:
+            kpad_data - used in debugging to buffer read data 
+ * **************************************************************************/
 #include <p18f452.h>
 #include <stdio.h>
 #include <xlcd.h>

@@ -1,3 +1,54 @@
+/***************************************************************************
+ * File Name:   _interval.c
+ * Author:      Aadidev Sooknanan
+ * 
+ * Function:
+ *      interface_interval
+ *          Input:      NONE
+ *          Output:     NONE
+ *          Process:    
+                        Initialises LCD
+                        Displays Options for Interval Storage
+                        
+                                                
+ *      interface_action
+   *          Input:    NONE
+ *          Output:     NONE
+ *          Process:    
+                        Initialises LCD 
+                        Displays Option to "Measure" OR "View Stored"
+                        
+       itnerface_display_abort
+            Input:      NONE
+            Output:     NONE 
+            Process:
+                        Initialises LCD
+                        Displays Option to continue or abort storage
+                        
+      interface_display_stored
+            Input:      EEPROM Address 
+            Output:     NONE 
+            Process:    
+                        Calls EEPROM Read Data routine
+                        Displays returned values 
+
+    Getters and setters for Temperature, HRV, HR and Glucose
+
+    Variable Listing:
+            interface_temp_int      -   buffer between EEPROM and LCD 
+                                    OR DS1822 and LCD
+            interface_temp_fraction - same as above
+            interface_rate          -   buffer between EEPROM and LCD
+                                    OR main and LCD
+            interface_pnn50         -   buffer between EEPROM and LCD
+                                    OR main and LCD
+            interface_gluc          -   buffer between EEPROM and LCD 
+                                    OR ADC and LCD
+            LCD_var, LCD_rate, LCD_temp, LCD_gluc   -   character arrays 
+                                            used to parse read/measured values
+                                            to the display   
+ * **************************************************************************/
+
 #include <p18f452.h>
 #include <xlcd.h>
 #include <delays.h>
@@ -131,8 +182,8 @@ void interface_display_stored(unsigned int addr)
     LCD_NOT_READY;    
     sprintf(LCD_rate,   "BPM: %u",      interface_rate);
     sprintf(LCD_var,    "pNN50: %i%%",  interface_pnn50);
-    sprintf(LCD_temp,   "TEMP: %i.%i",  interface_temp_int,interface_temp_fraction);
-    sprintf(LCD_gluc,   "GLUCOSE: %i",  interface_gluc);
+    sprintf(LCD_temp,   "TEMP: %i.%i",  interface_temp_int,interface_temp_fraction,0xB0);
+    sprintf(LCD_gluc,   "GLUCOSE: %img/dl",  interface_gluc);
     LCD_NOT_READY;
     SetDDRamAddr(LINE_ONE);
     LCD_NOT_READY;

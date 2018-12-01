@@ -1,3 +1,16 @@
+/***************************************************************************
+ * File Name:   _lvd.c
+ * Author:      Brandon Jodha
+ * NOTE: Module NOT implemented
+ * 
+ * Function:
+ *      lvd_config
+ *          Input:      NONE
+ *          Output:     NONE
+ *          Process:    
+                        Configures LVD module and enables LVD interrupt
+ * **************************************************************************/
+
 #include <xc.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,3 +1,31 @@
+/***************************************************************************
+   File Name:   _speaker.c
+   Author:      Brandon Jodha
+   
+   Function:
+        speaker_init
+            Input:      NONE
+            Output:     NONE
+            Process:    
+                        Configures Timer2 for PWM
+                        Configures TRISC2 for Output 
+                        Sets PWM2 Duty Cycle 
+                        Opens PWM2
+                              
+        speaker_alarm_seq
+            Input:      NONE
+            Output:     NONE
+            Process:    
+                        Initialises speaker 
+                        Plays alarm sequence
+
+        speaker_alarm           
+            Input:      NONE 
+            Output:     NONE 
+            Process:
+                        Calls alarm sequence if HR, HRV or Glucose Flag bits 
+                        set
+ ****************************************************************************/
 #include <p18f452.h>
 #include <xlcd.h>
 #include <delays.h>

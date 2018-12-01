@@ -1,3 +1,58 @@
+/***************************************************************************
+ * File Name:   _eeprom.c
+ * Author:      Aadidev Sooknanan
+ * 
+ * Function:
+ *      eeprom_write_data
+ *          Input:      EEPROM Address (int)
+ *          Output:     NONE
+ *          Process:    
+                        Calls getter functions for:
+                          Pulse count
+                          HRV 
+                          Temperature 
+                          Glucose 
+                        Writes returned values to five consecutive EEPROM 
+                        locations beginning from EEPROM Address
+                        
+                                                
+ *      eeprom_store_interval
+ *          Input:      Option for Interval (char)
+ *          Output:     NONE
+ *          Process:    
+                        Writes input parameter to EE_LOC_INTERVAL address 
+                        Provides error-catching for invalid choice of interval
+                        
+       eeprom_display_data
+            Input:      EEPROM Address (int)
+            Output:     NONE 
+            Process:
+                        Reads five consecutive memory locations beginning from 
+                        EEPROM Address and calls _interface.c setters for each
+                        read value
+                        
+      eeprom_write
+            Input:      Data (int) Address (int) 
+            Output:     NONE 
+            Process:    
+                        Performs EEPROM Write Sequence 
+                        Writes Data to Address 
+
+     eeprom_reead
+            Input:      Address (int) 
+            Output:     Data (char) 
+            Process:
+                        Performs EEPROM Read Sequence 
+                        Returns read data
+
+    Getters and setters for Interval and next available memory location
+
+
+    Variable Listing:
+            addr_1:addr_5   -    stores consecutive EEPROM Addresses
+            interval_store  -   used as a buffer between main and the EEPROM
+ * **************************************************************************/
+
 #include <p18f452.h>
 #include <delays.h>
 #include "_functions.h"
@@ -32,18 +87,23 @@ void eeprom_store_interval(char interval_option)
     {
         case 'A':
             interval_store =   1;
+            eeprom_write(1,EE_LOC_INTERVAL);
             set_valid_int();
             break;
         case 'B':
             interval_store  =   2;
+            eeprom_write(2, EE_LOC_INTERVAL);
             set_valid_int();
             break;
         case 'C':
             interval_store  =   5;
+            eeprom_write(5,EE_LOC_INTERVAL);
             set_valid_int();
             break;
         case 'D':
             interval_store  =   10;
+            eeprom_write(10, EE_LOC_INTERVAL);
+            
             set_valid_int();
             break;
         default:
@@ -128,6 +188,7 @@ unsigned char eeprom_read(unsigned int addr)
 
 unsigned int eeprom_get_interval(void)
 {
+    interval_store  =   eeprom_read(EE_LOC_INTERVAL);
     return interval_store;
 }
 
